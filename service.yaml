@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: blog-service
 spec:
-  type: NodePort
+  type: NodePort                  # NodePort for local access
   selector:
     app: blog-app
   ports:
-    - port: 80
-      targetPort: 8081
-      nodePort: 30007
+    - port: 8081                  # internal cluster port
+      targetPort: 8081            # container port in pod
+      nodePort: 30007             # external port to access app
