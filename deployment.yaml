@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: blog-app
-        image: blog-app
-        imagePullPolicy: Never
+        image: thanushdev01/blog-app:latest   # <-- Use your Docker Hub image
+        imagePullPolicy: Always                # <-- Pull latest from Docker Hub
         ports:
-        - containerPort: 8081
+        - containerPort: 8081                  # <-- Keep 8081 only if your app runs on this port
