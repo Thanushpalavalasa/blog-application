@@ -29,9 +29,9 @@ jobs:
       - name: Build Docker Image
         run: docker build -t blog-app .
 
-      # Step 5: Login to Docker Hub
+      # Step 5: Login to Docker Hub (safe method)
       - name: Login to DockerHub
-        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
+        run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
 
       # Step 6: Tag Docker image with your username/repo
       - name: Tag Image
