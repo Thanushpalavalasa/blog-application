@@ -29,14 +29,38 @@ jobs:
       - name: Build Docker Image
         run: docker build -t blog-app .
 
-      # Step 5: Login to Docker Hub (safe method)
+      # Step 5: Login to Docker Hub
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
 
-      # Step 6: Tag Docker image with your username/repo
+      # Step 6: Tag image with unique version (IMPORTANT CHANGE)
       - name: Tag Image
-        run: docker tag blog-app ${{ secrets.DOCKER_USER }}/blog-app:latest
+        run: docker tag blog-app ${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
 
-      # Step 7: Push Docker image to Docker Hub
+      # Step 7: Push image
       - name: Push Image
-        run: docker push ${{ secrets.DOCKER_USER }}/blog-app:latest
+        run: docker push ${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
+
+      # 🔥 NEW STEPS START HERE
+
+      # Step 8: Clone GitOps repo
+      - name: Clone GitOps repo
+        run: |
+          git clone https://github.com/Thanushpalavalasa/blog-app-gitops.git
+          cd blog-app-gitops
+
+      # Step 9: Update deployment.yaml image
+      - name: Update deployment image
+        run: |
+          cd blog-app-gitops
+          sed -i 's|image: .*|image: '${{ secrets.DOCKER_USER }}'/blog-app:${{ github.sha }}|' deployment.yaml
+
+      # Step 10: Commit and push changes
+      - name: Commit and push changes
+        run: |
+          cd blog-app-gitops
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add deployment.yaml
+          git commit -m "Update image to ${{ github.sha }}"
+          git push
