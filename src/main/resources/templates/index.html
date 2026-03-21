@@ -5,12 +5,24 @@
     <section>
         <div class="p-4 p-md-5 mb-4 text-white rounded bg-dark">
             <div class="col-md-6 px-0">
-                <h1 class="display-4 fst-italic">Welcome to Simple Blog</h1>
+
+                <!-- 🔥 UPDATED HEADER FOR TESTING -->
+                <h1 class="display-4 fst-italic text-warning">
+                    🚀 Deployed via Kubernetes + ArgoCD (Version 2)
+                </h1>
+
+                <!-- 🔥 NEW LINE TO VERIFY DEPLOYMENT -->
+                <p class="lead my-3 text-success">
+                    ✅ Auto Deployment Working!
+                </p>
+
                 <p class="lead my-3">Share your thoughts and ideas with the world.</p>
+
                 <p class="lead mb-0" th:if="${currentUser == null}">
                     <a href="/register" class="text-white fw-bold">Join now</a> or 
                     <a href="/login" class="text-white fw-bold">Login</a>
                 </p>
+
                 <p class="lead mb-0" th:if="${currentUser != null}">
                     <a href="/posts/new" class="text-white fw-bold">Create a new post</a>
                 </p>
