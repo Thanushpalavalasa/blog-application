@@ -25,40 +25,48 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # Step 4: Build Docker image
-      - name: Build Docker Image
-        run: docker build -t blog-app .
-
-      # Step 5: Login to Docker Hub
+      # Step 4: Login to Docker Hub
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
 
-      # Step 6: Tag image with unique version
-      - name: Tag Image
-        run: docker tag blog-app ${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
+      # Step 5: Build & Tag Docker image
+      - name: Build and Tag Docker Image
+        run: |
+          IMAGE=${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
 
-      # Step 7: Push image
-      - name: Push Image
-        run: docker push ${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
-
-      # Step 8: Clone GitOps repo (WITH TOKEN ✅)
+      # Step 6: Clone GitOps repo
       - name: Clone GitOps repo
         run: |
           git clone https://${{ secrets.GIT_TOKEN }}@github.com/Thanushpalavalasa/blog-app-gitops.git
 
-      # Step 9: Update deployment.yaml image
+      # Step 7: Update deployment.yaml safely
       - name: Update deployment image
         run: |
           cd blog-app-gitops
-          sed -i 's|image: .*|image: '${{ secrets.DOCKER_USER }}'/blog-app:${{ github.sha }}|' deployment.yaml
 
-      # Step 10: Commit and push changes
+          IMAGE=${{ secrets.DOCKER_USER }}/blog-app:${{ github.sha }}
+
+          # Replace ONLY blog-app container image
+          awk -v img="$IMAGE" '
+          /name: blog-app/ {found=1}
+          found && /image:/ {sub(/image:.*/, "image: " img); found=0}
+          {print}
+          ' deployment.yaml > tmp.yaml && mv tmp.yaml deployment.yaml
+
+          echo "Updated deployment.yaml:"
+          cat deployment.yaml
+
+      # Step 8: Commit and push changes
       - name: Commit and push changes
         run: |
           cd blog-app-gitops
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add deployment.yaml
           git commit -m "Update image to ${{ github.sha }}" || echo "No changes to commit"
+
           git remote set-url origin https://${{ secrets.GIT_TOKEN }}@github.com/Thanushpalavalasa/blog-app-gitops.git
           git push
